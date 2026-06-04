@@ -266,6 +266,57 @@ body {
   opacity: 0.6;
 }
 
+/* Conversion progress */
+
+.conversion-progress {
+  margin-top: 1rem;
+  padding: 1rem 1.125rem;
+  background: var(--accent-soft);
+  border: 1px solid rgba(79, 70, 229, 0.15);
+  border-radius: var(--radius-sm);
+  animation: fadeIn 0.25s ease;
+}
+
+.conversion-progress-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.625rem;
+}
+
+.conversion-progress-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.conversion-progress-percent {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.conversion-progress-track {
+  height: 0.5rem;
+  background: rgba(79, 70, 229, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.conversion-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), #6366f1);
+  border-radius: 999px;
+  transition: width 0.35s ease-out;
+}
+
+.conversion-progress.is-complete .conversion-progress-fill {
+  transition-duration: 0.2s;
+}
+
 /* Error */
 
 .error-banner {
