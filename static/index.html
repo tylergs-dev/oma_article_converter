@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Article to Print</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-header no-print">
+        <div class="brand">
+          <span class="brand-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="8" y1="13" x2="16" y2="13"/>
+              <line x1="8" y1="17" x2="13" y2="17"/>
+            </svg>
+          </span>
+          <div>
+            <h1 class="site-title">Article to Print</h1>
+            <p class="site-tagline">
+              Reader-mode extraction for clean, printable articles.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <section id="input-section" class="input-section no-print">
+        <div class="input-card">
+          <form id="convert-form" class="convert-form">
+            <label for="url-input" class="field-label">Article URL</label>
+            <div class="field-row">
+              <input
+                id="url-input"
+                type="url"
+                name="url"
+                placeholder="https://example.com/your-article"
+                required
+                autocomplete="url"
+              />
+              <button type="submit" id="submit-btn" class="btn btn-primary">
+                <span class="btn-label">Convert</span>
+                <span class="btn-spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+          <ul class="hints" aria-hidden="true">
+            <li>No images or ads</li>
+            <li>Title, author &amp; date</li>
+            <li>Print or save as PDF</li>
+          </ul>
+        </div>
+        <div id="error-message" class="error-banner" role="alert" hidden></div>
+      </section>
+
+      <section id="preview-section" class="preview-section" hidden>
+        <div class="preview-toolbar no-print">
+          <span class="preview-label">Preview</span>
+          <div class="preview-actions">
+            <button type="button" id="print-btn" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+              </svg>
+              Print
+            </button>
+            <button type="button" id="reset-btn" class="btn btn-ghost">Convert another</button>
+          </div>
+        </div>
+        <article class="print-article">
+          <h1 id="print-title" class="print-title"></h1>
+          <p id="print-meta" class="print-meta"></p>
+          <div id="print-body" class="print-body"></div>
+        </article>
+      </section>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
