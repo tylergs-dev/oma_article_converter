@@ -1,6 +1,10 @@
+# Purpose
+
+Personal project made for Oma to have easy to read prints using her scan reader (cause she's blind)
+
 # Article to Print
 
-Convert any web article into a clean, text-only document you can print or save as PDF from your browser.
+Convert any web article into a clean, text-only document you can print or save as PDF from your browser. 
 
 ## Features
 
