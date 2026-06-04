@@ -52,6 +52,28 @@
             <li>Print/save as PDF</li>
           </ul>
         </div>
+        <div
+          id="conversion-progress"
+          class="conversion-progress"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <div class="conversion-progress-header">
+            <span id="progress-label" class="conversion-progress-label">Checking URL</span>
+            <span id="progress-percent" class="conversion-progress-percent">0%</span>
+          </div>
+          <div
+            class="conversion-progress-track"
+            role="progressbar"
+            aria-labelledby="progress-label"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <div id="progress-fill" class="conversion-progress-fill"></div>
+          </div>
+        </div>
         <div id="error-message" class="error-banner" role="alert" hidden></div>
       </section>
 
