@@ -360,6 +360,20 @@ body {
   margin: 1.75rem 0 0.75rem;
   line-height: 1.3;
   letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.print-body h2 {
+  font-size: 1.35rem;
+}
+
+.print-body h3 {
+  font-size: 1.15rem;
+}
+
+.print-body strong,
+.print-body b {
+  font-weight: 700;
 }
 
 .print-body ul,

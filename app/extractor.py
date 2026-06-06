@@ -66,6 +66,68 @@ ALLOWED_TAGS = {
     "td",
 }
 
+BLOCK_TAGS = ("h2", "h3", "h4", "p", "ul", "ol", "blockquote", "table")
+
+ARTICLE_CONTAINER_SELECTORS = (
+    ".article__body",
+    '[itemprop="articleBody"]',
+    ".article-body",
+    ".entry-content",
+    ".post-content",
+    "article",
+)
+
+JUNK_CLASS_PATTERN = re.compile(
+    r"newsletter|subscribe|signup|advert|promo|social-?share|share-?bar|"
+    r"related-?content|disclaimer|article-topics|wcp-item",
+    re.I,
+)
+
+_BOILERPLATE_PARAGRAPH_PATTERNS = tuple(
+    re.compile(pat, re.I)
+    for pat in (
+        r"^you are now subscribed\.?$",
+        r"newsletter sign-up was successful",
+        r"^want to add more newsletters\??$",
+        r"an account already exists for this email",
+        r"profit and prosper with the best of (kiplinger|expert advice)",
+        r"enter your email in the box",
+        r"click sign me up",
+        r"^sign up\.?$",
+        r"become a smarter, better informed investor",
+        r"subscribe from just",
+        r"click for free issue",
+        r"^from just\s+\$",
+        r"sign up for kiplinger",
+        r"contact me with news and offers",
+        r"by submitting your information you agree",
+        r"^copy link$",
+        r"^join the conversation$",
+        r"^share this article$",
+        r"^print$",
+        r"^facebook$",
+        r"^x$",
+        r"^about adviser intel$",
+        r"participant in\s*kiplinger'?s adviser intel",
+        r"looking for expert tips to grow and preserve your wealth",
+        r"this article was written by and presents the views of our contributing adviser",
+        r"you can check adviser records with the",
+    )
+)
+
+_PROMO_HEADING_PATTERNS = tuple(
+    re.compile(pat, re.I)
+    for pat in (
+        r"sign up for kiplinger",
+        r"for kiplinger personal finance",
+        r"subscribe from just",
+        r"^related content$",
+        r"^about adviser intel$",
+        r"^topics$",
+        r"^disclaimer$",
+    )
+)
+
 
 class ExtractError(Exception):
     pass
@@ -155,6 +217,173 @@ def _strip_unwanted(soup: BeautifulSoup) -> None:
                 href = attrs.get("href", "")
                 if href:
                     tag["href"] = href
+
+
+def _normalize_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text or "").strip()
+
+
+def _is_boilerplate_paragraph(text: str) -> bool:
+    normalized = _normalize_text(text)
+    if not normalized:
+        return True
+    return any(pat.search(normalized) for pat in _BOILERPLATE_PARAGRAPH_PATTERNS)
+
+
+def _is_promo_heading(text: str) -> bool:
+    normalized = _normalize_text(text)
+    if not normalized:
+        return True
+    return any(pat.search(normalized) for pat in _PROMO_HEADING_PATTERNS)
+
+
+def _find_article_container(soup: BeautifulSoup):
+    for selector in ARTICLE_CONTAINER_SELECTORS:
+        for element in soup.select(selector):
+            if len(element.get_text(strip=True)) >= 400:
+                return element
+    return None
+
+
+def _prune_article_container(container) -> None:
+    for tag_name in REMOVE_TAGS:
+        for tag in container.find_all(tag_name):
+            tag.decompose()
+
+    for tag in container.find_all(True):
+        if not tag.attrs:
+            continue
+        class_str = " ".join(tag.get("class", []) or [])
+        tag_id = tag.get("id", "") or ""
+        if JUNK_CLASS_PATTERN.search(f"{class_str} {tag_id}"):
+            tag.decompose()
+
+    for heading in list(container.find_all(["h2", "h3", "h4"])):
+        if _is_promo_heading(heading.get_text()):
+            heading.decompose()
+
+    for heading in container.find_all("h3"):
+        if _normalize_text(heading.get_text()).lower() == "related content":
+            sibling = heading.find_next_sibling()
+            if sibling and sibling.name in ("ul", "ol"):
+                sibling.decompose()
+            heading.decompose()
+
+
+def _extract_from_container(container) -> str | None:
+    work = BeautifulSoup(str(container), "html.parser")
+    root = work.find(True)
+    if not root:
+        return None
+
+    _prune_article_container(root)
+
+    blocks: list[str] = []
+    for tag in root.find_all(BLOCK_TAGS):
+        if tag.find_parent(BLOCK_TAGS):
+            continue
+
+        if tag.name in ("h2", "h3", "h4"):
+            text = tag.get_text(" ", strip=True)
+            if _is_promo_heading(text):
+                continue
+            blocks.append(f"<{tag.name}>{text}</{tag.name}>")
+            continue
+
+        if tag.name == "p":
+            text = tag.get_text(" ", strip=True)
+            if _is_boilerplate_paragraph(text):
+                continue
+            if _normalize_text(text).lower() == "about adviser intel":
+                continue
+            blocks.append(f"<p>{text}</p>")
+            continue
+
+        if tag.name in ("ul", "ol"):
+            link_text = " ".join(
+                _normalize_text(a.get_text()) for a in tag.find_all("a")
+            ).lower()
+            if link_text in {"facebook x", "facebook", "x"} or (
+                len(tag.find_all("li")) <= 3 and "facebook" in link_text
+            ):
+                continue
+
+        if tag.name in ("ul", "ol", "blockquote", "table"):
+            inner = BeautifulSoup(str(tag), "html.parser")
+            _strip_unwanted(inner)
+            fragment = inner.find(tag.name)
+            if fragment and fragment.get_text(strip=True):
+                blocks.append(str(fragment))
+
+    if not blocks:
+        return None
+
+    return "\n".join(blocks)
+
+
+def _remove_boilerplate_paragraphs(soup: BeautifulSoup) -> None:
+    for paragraph in list(soup.find_all("p")):
+        if _is_boilerplate_paragraph(paragraph.get_text()):
+            paragraph.decompose()
+
+
+def _restore_headings_from_source(body_soup: BeautifulSoup, source) -> None:
+    if not source:
+        return
+
+    heading_texts: list[tuple[str, str]] = []
+    for level in ("h2", "h3", "h4"):
+        for heading in source.find_all(level):
+            text = _normalize_text(heading.get_text())
+            if text and not _is_promo_heading(text):
+                heading_texts.append((level, text))
+
+    for level, text in heading_texts:
+        for paragraph in body_soup.find_all("p"):
+            if _normalize_text(paragraph.get_text()) == text:
+                paragraph.name = level
+                break
+
+
+def _trim_leading_noise(soup: BeautifulSoup, title: str | None) -> None:
+    title_norm = _normalize_text(title or "")
+    for paragraph in list(soup.find_all("p")):
+        text = _normalize_text(paragraph.get_text())
+        if _is_boilerplate_paragraph(text):
+            paragraph.decompose()
+            continue
+        if title_norm and text == title_norm:
+            paragraph.decompose()
+            continue
+        break
+
+
+def _extract_body_html(html: str, url: str) -> str | None:
+    page = BeautifulSoup(html, "html.parser")
+    container = _find_article_container(page)
+
+    if container:
+        direct = _extract_from_container(container)
+        if direct and len(_normalize_text(BeautifulSoup(direct, "html.parser").get_text())) >= 400:
+            return direct
+
+    extract_html = str(container) if container else html
+    content = trafilatura.extract(
+        extract_html,
+        url=url,
+        include_comments=False,
+        include_tables=True,
+        include_images=False,
+        include_links=False,
+        output_format="html",
+    )
+    if not content:
+        return None
+
+    soup = BeautifulSoup(content, "html.parser")
+    _remove_boilerplate_paragraphs(soup)
+    _restore_headings_from_source(soup, container)
+    return str(soup) if soup.get_text(strip=True) else None
 
 
 def sanitize_html(html: str) -> str:
@@ -296,16 +525,6 @@ def _fallback_metadata(html: str, url: str) -> dict[str, str | None]:
 
 def extract_article(url: str, html: str) -> dict[str, str | None]:
     metadata = trafilatura.extract_metadata(html, default_url=url)
-    content = trafilatura.extract(
-        html,
-        url=url,
-        include_comments=False,
-        include_tables=True,
-        include_images=False,
-        include_links=False,
-        output_format="html",
-    )
-
     fallbacks = _fallback_metadata(html, url)
 
     title = (metadata.title if metadata else None) or fallbacks["title"]
@@ -317,7 +536,10 @@ def extract_article(url: str, html: str) -> dict[str, str | None]:
     if not date_raw:
         date_raw = fallbacks["date"]
 
-    body_html = sanitize_html(content or "")
+    raw_body = _extract_body_html(html, url)
+    body_soup = BeautifulSoup(raw_body or "", "html.parser")
+    _trim_leading_noise(body_soup, title)
+    body_html = sanitize_html(str(body_soup) if body_soup.get_text(strip=True) else "")
     if not body_html:
         raise ExtractError("Could not extract article content")
 
