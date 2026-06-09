@@ -9,6 +9,7 @@ Convert any web article into a clean, text-only document you can print or save a
 ## Features
 
 - Paste an article URL and extract reader-mode-style content
+- Automatic [Jina Reader](https://jina.ai/reader/) fallback when a site returns 403/429 or a bot/challenge page
 - No images, ads, or alt text from removed images
 - Title, author, source, and publication date at the top
 - Print-optimized layout (use browser Print → Save as PDF)
@@ -24,49 +25,28 @@ uvicorn app.main:app --reload
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
+### Environment variables (optional)
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `JINA_API_KEY` | *(unset)* | Jina Reader API key — higher quota and proxy routing for blocked sites. Get one at [jina.ai/reader](https://jina.ai/reader#pricing). |
+| `JINA_FALLBACK_ENABLED` | `true` | Set to `false` to disable the Jina fallback and only use direct fetching. |
+
+```bash
+export JINA_API_KEY=your_key_here
+uvicorn app.main:app --reload
+```
+
 ## Deploy on Render
 
 This app ships the **UI and API together** (FastAPI serves `static/` and `/api/convert`). One Render Web Service is enough—no separate frontend host.
 
-### Prerequisites
-
-1. Push this repo to GitHub (or GitLab/Bitbucket).
-2. Create an account at [render.com](https://render.com).
-
-### Option A — Blueprint (fastest)
-
-1. In Render: **New** → **Blueprint**.
-2. Connect the repo and select `oma_article_converter`.
-3. Render reads [`render.yaml`](render.yaml) and creates a web service named `article-to-print`.
-4. Click **Apply** and wait for the first deploy to finish.
-5. Open the service URL (e.g. `https://article-to-print.onrender.com`).
-
-### Option B — Manual Web Service
-
-1. **New** → **Web Service** → connect your repo.
-2. Settings:
-
-   | Field | Value |
-   |-------|--------|
-   | **Runtime** | Python 3 |
-   | **Build Command** | `pip install -r requirements.txt` |
-   | **Start Command** | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
-   | **Health Check Path** | `/` (optional) |
-
-3. **Create Web Service** and wait for deploy.
-4. Use the `.onrender.com` URL Render assigns.
-
 ### Notes
 
 - **Free plan:** The service sleeps after inactivity; the first request after sleep can take 30–60 seconds.
-- **Root URL:** `/` is the app; `/api/convert` is the API. No extra env vars are required for a default deploy.
+- **Root URL:** `/` is the app; `/api/convert` is the API.
+- **Jina fallback:** Works without `JINA_API_KEY` on the free tier, but adding a key improves success on bot-blocked sites. Set `JINA_API_KEY` in the Render dashboard under **Environment**.
 - **Custom domain:** Render dashboard → your service → **Settings** → **Custom Domains**.
-
-### Verify after deploy
-
-1. Open your Render URL in a browser.
-2. Paste an article URL and click **Convert**.
-3. If conversion works locally but fails on Render, the target site may be blocking Render’s datacenter IPs (same as any cloud host).
 
 ## Usage
 
@@ -86,7 +66,9 @@ Returns `title`, `author`, `source`, `date`, and `html` (sanitized body).
 
 ## Limitations
 
-- The server fetches URLs on your behalf. Paywalled, JavaScript-only, or bot-blocked pages may fail.
+- The server fetches URLs on your behalf. Paywalled, JavaScript-only, or bot-blocked pages may still fail even with the Jina fallback.
+- Jina Reader free tier has rate limits; heavily blocked sites may need a `JINA_API_KEY` with proxy enabled.
+- Fallback conversions can take 5–30 seconds longer than direct fetches.
 - Extraction quality depends on the source HTML; some sites return sparse or empty content.
 - For personal/archival use; respect site terms of service and copyright.
 

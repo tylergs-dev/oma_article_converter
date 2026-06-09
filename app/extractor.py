@@ -2,8 +2,13 @@ import ipaddress
 import json
 import re
 import socket
+from dataclasses import dataclass
 from datetime import datetime
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import urlparse
+
+if TYPE_CHECKING:
+    from app.jina_fetcher import JinaArticle
 
 import httpx
 import trafilatura
@@ -134,7 +139,22 @@ class ExtractError(Exception):
 
 
 class FetchError(Exception):
-    pass
+    def __init__(
+        self,
+        message: str,
+        status_code: int | None = None,
+        body: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.body = body
+
+
+@dataclass
+class FetchResult:
+    source: Literal["direct", "jina"]
+    html: str | None = None
+    jina_article: "JinaArticle | None" = None
 
 
 class InvalidUrlError(Exception):
@@ -176,7 +196,7 @@ def validate_url(url: str) -> str:
     return url
 
 
-async def fetch_html(url: str) -> str:
+async def fetch_direct(url: str) -> str:
     headers = {"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"}
     try:
         async with httpx.AsyncClient(
@@ -187,7 +207,11 @@ async def fetch_html(url: str) -> str:
             response = await client.get(url, headers=headers)
             response.raise_for_status()
     except httpx.HTTPStatusError as exc:
-        raise FetchError(f"Server returned {exc.response.status_code}") from exc
+        raise FetchError(
+            f"Server returned {exc.response.status_code}",
+            status_code=exc.response.status_code,
+            body=exc.response.text[:8000] if exc.response.text else None,
+        ) from exc
     except httpx.RequestError as exc:
         raise FetchError(str(exc)) from exc
 
@@ -199,6 +223,35 @@ async def fetch_html(url: str) -> str:
             raise FetchError("Response is not HTML")
 
     return response.text
+
+
+async def _fetch_via_jina(url: str) -> FetchResult:
+    from app.jina_fetcher import fetch_jina_article
+
+    try:
+        article = await fetch_jina_article(url)
+    except FetchError as exc:
+        raise FetchError(
+            "Site blocked automated access. Direct fetch failed and Jina Reader "
+            f"could not retrieve the page. ({exc})"
+        ) from exc
+    return FetchResult(source="jina", jina_article=article)
+
+
+async def fetch_html(url: str) -> FetchResult:
+    from app.jina_fetcher import should_use_jina_fallback
+
+    try:
+        html = await fetch_direct(url)
+    except FetchError as exc:
+        if should_use_jina_fallback(exc.status_code):
+            return await _fetch_via_jina(url)
+        raise
+
+    if should_use_jina_fallback(None, html):
+        return await _fetch_via_jina(url)
+
+    return FetchResult(source="direct", html=html)
 
 
 def _strip_unwanted(soup: BeautifulSoup) -> None:
@@ -558,6 +611,12 @@ def extract_article(url: str, html: str) -> dict[str, str | None]:
 
 
 async def convert_url(url: str) -> dict[str, str | None]:
+    from app.jina_fetcher import jina_article_to_response
+
     safe_url = validate_url(str(url))
-    html = await fetch_html(safe_url)
-    return extract_article(safe_url, html)
+    fetched = await fetch_html(safe_url)
+    if fetched.source == "direct":
+        return extract_article(safe_url, fetched.html or "")
+    if not fetched.jina_article:
+        raise FetchError("Jina Reader fallback did not return article content")
+    return jina_article_to_response(safe_url, fetched.jina_article)

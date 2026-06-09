@@ -10,3 +10,7 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     autoDeploy: true
+    # Optional: set JINA_API_KEY in the Render dashboard for better bot-blocked site support.
+    # envVars:
+    #   - key: JINA_API_KEY
+    #     sync: false

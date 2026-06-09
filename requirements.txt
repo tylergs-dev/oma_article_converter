@@ -4,3 +4,4 @@ httpx
 trafilatura
 beautifulsoup4
 pydantic
+markdown
