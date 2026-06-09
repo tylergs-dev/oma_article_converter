@@ -1,0 +1,79 @@
+Article to Print — Install the browser extension manually
+=========================================================
+
+This extension is not on the Microsoft Edge Add-ons store or Chrome Web Store yet.
+Install it from the downloaded ZIP package using "Load unpacked" (sideload).
+
+Before you start
+----------------
+- You need Microsoft Edge or Google Chrome (Chromium-based browsers work the same way).
+- Download article-to-print-extension.zip from the website first.
+- The extension runs entirely in your browser. An optional Jina API key can be added later in the extension Options page for sites that block automated access.
+
+
+Step 1 — Unzip the package
+--------------------------
+1. Find article-to-print-extension.zip in your Downloads folder.
+2. Double-click the ZIP to open it, or right-click and choose Extract / Unzip.
+3. You should get a folder containing files such as manifest.json, assets/, and src/.
+   Keep this folder somewhere permanent (for example Documents/ArticleToPrintExtension).
+   Do not delete it after installing — Edge/Chrome load the extension from this folder.
+
+
+Step 2 — Turn on Developer mode
+-------------------------------
+Microsoft Edge:
+1. Open a new tab and go to: edge://extensions
+2. Turn on Developer mode (toggle in the bottom-left or top-right, depending on version).
+
+Google Chrome:
+1. Open a new tab and go to: chrome://extensions
+2. Turn on Developer mode (toggle in the top-right).
+
+
+Step 3 — Load the unpacked extension
+------------------------------------
+1. On the extensions page, click "Load unpacked" (Edge) or "Load unpacked" (Chrome).
+2. Select the folder you unzipped in Step 1 (the folder that contains manifest.json).
+3. Click Select Folder / Open.
+
+The "Article to Print" extension should appear in your extensions list.
+
+
+Step 4 — Pin the extension (recommended)
+----------------------------------------
+1. Click the puzzle-piece / extensions icon in the browser toolbar.
+2. Find "Article to Print" and click the pin icon so it stays visible.
+
+
+Step 5 — Use the extension
+--------------------------
+1. Open any web article in a normal tab.
+2. Click the Article to Print extension icon.
+3. The current page URL is filled in automatically — click Convert.
+4. A preview tab opens. Click Print (or Ctrl+P / Cmd+P) and choose Save as PDF if you want a file.
+
+
+Optional — Jina API key
+-----------------------
+Some news sites block anonymous reader services. If conversion fails on certain sites:
+
+1. Right-click the extension icon → Options (or open extension details → Extension options).
+2. Paste a free API key from https://jina.ai/reader
+3. Save settings and try again.
+
+
+Updating to a new version
+-------------------------
+1. Download the new ZIP from the website.
+2. Unzip it to the same folder (replace old files), or unzip to a new folder.
+3. On edge://extensions or chrome://extensions, click the Reload icon on the Article to Print card.
+   If you used a new folder, remove the old extension and Load unpacked again pointing at the new folder.
+
+
+Troubleshooting
+---------------
+- "Manifest file is missing or unreadable" — you selected the wrong folder. Choose the folder that directly contains manifest.json, not the ZIP file itself.
+- Extension disappears after restart — make sure you did not delete the unzipped folder.
+- Convert does nothing on edge:// or chrome:// pages — open a normal http/https article page first.
+- Still failing on some sites — add a Jina API key in Options, or use the website version as a fallback.

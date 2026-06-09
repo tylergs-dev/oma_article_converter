@@ -6,7 +6,7 @@ Personal project made for Oma to have easy to read prints using her scan reader 
 
 Convert any web article into a clean, text-only document you can print or save as PDF from your browser.
 
-**Recommended:** use the [browser extension](extension/README.md) (Edge/Chromium) for daily use. This web app remains a no-install fallback. 
+**Recommended:** download the **browser extension** from the website (Download browser extension button) for daily use. See `static/extension-install.txt` for manual install steps. This web app remains a no-install fallback. 
 
 ## Features
 
