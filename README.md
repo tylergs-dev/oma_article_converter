@@ -29,13 +29,18 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `JINA_API_KEY` | *(unset)* | Jina Reader API key — higher quota and proxy routing for blocked sites. Get one at [jina.ai/reader](https://jina.ai/reader#pricing). |
+| `JINA_API_KEY` | *(unset)* | **Recommended for production.** Higher quota, proxy routing, and bypass of Jina domain blocks (HTTP 451) that affect anonymous requests. Get one at [jina.ai/reader](https://jina.ai/reader#pricing). |
 | `JINA_FALLBACK_ENABLED` | `true` | Set to `false` to disable the Jina fallback and only use direct fetching. |
 
+**Local development** — copy `.env.example` to `.env` and paste your key:
+
 ```bash
-export JINA_API_KEY=your_key_here
+cp .env.example .env
+# edit .env and set JINA_API_KEY=...
 uvicorn app.main:app --reload
 ```
+
+**Render** — in the dashboard go to your service → **Environment** → add `JINA_API_KEY` with your key, then redeploy.
 
 ## Deploy on Render
 
@@ -67,7 +72,7 @@ Returns `title`, `author`, `source`, `date`, and `html` (sanitized body).
 ## Limitations
 
 - The server fetches URLs on your behalf. Paywalled, JavaScript-only, or bot-blocked pages may still fail even with the Jina fallback.
-- Jina Reader free tier has rate limits; heavily blocked sites may need a `JINA_API_KEY` with proxy enabled.
+- Jina Reader free tier has rate limits. Without `JINA_API_KEY`, many news sites return **451** (domain blocked for anonymous use) — add a key on Render to fix this.
 - Fallback conversions can take 5–30 seconds longer than direct fetches.
 - Extraction quality depends on the source HTML; some sites return sparse or empty content.
 - For personal/archival use; respect site terms of service and copyright.

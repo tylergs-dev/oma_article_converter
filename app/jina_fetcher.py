@@ -117,6 +117,56 @@ def _markdown_to_html(md: str) -> str:
     )
 
 
+def _has_jina_api_key() -> bool:
+    return bool(os.getenv("JINA_API_KEY", "").strip())
+
+
+def _jina_error_message(response: httpx.Response) -> str:
+    try:
+        payload = response.json()
+    except ValueError:
+        return f"Jina Reader returned HTTP {response.status_code}"
+
+    if not isinstance(payload, dict):
+        return f"Jina Reader returned HTTP {response.status_code}"
+
+    detail = (
+        payload.get("readableMessage")
+        or payload.get("message")
+        or payload.get("detail")
+        or f"HTTP {response.status_code}"
+    )
+    code = payload.get("code", response.status_code)
+    http_status = response.status_code
+
+    is_blocked = (
+        http_status == 451
+        or code == 451
+        or (isinstance(code, int) and 45100 <= code <= 45199)
+    )
+    if is_blocked and not _has_jina_api_key():
+        return (
+            f"{detail} "
+            "Jina blocks some domains for anonymous requests. "
+            "Set JINA_API_KEY (free at https://jina.ai/reader) and redeploy to bypass."
+        )
+
+    if http_status == 429 or code == 429:
+        return (
+            f"{detail} "
+            "Jina rate limit reached — wait a moment or set JINA_API_KEY for higher quota."
+        )
+
+    if is_blocked:
+        return str(detail)
+
+    return f"Jina Reader error: {detail}"
+
+
+def _raise_jina_api_error(response: httpx.Response) -> None:
+    raise FetchError(_jina_error_message(response))
+
+
 async def fetch_jina_article(url: str) -> JinaArticle:
     jina_url = f"{JINA_BASE_URL}{url}"
     try:
@@ -124,9 +174,7 @@ async def fetch_jina_article(url: str) -> JinaArticle:
             response = await client.get(jina_url, headers=_jina_headers())
             response.raise_for_status()
     except httpx.HTTPStatusError as exc:
-        raise FetchError(
-            f"Jina Reader returned {exc.response.status_code}"
-        ) from exc
+        _raise_jina_api_error(exc.response)
     except httpx.RequestError as exc:
         raise FetchError(f"Jina Reader request failed: {exc}") from exc
 
@@ -136,8 +184,7 @@ async def fetch_jina_article(url: str) -> JinaArticle:
         raise FetchError("Jina Reader returned invalid JSON") from exc
 
     if isinstance(payload, dict) and payload.get("code", 200) >= 400:
-        message = payload.get("message") or payload.get("detail") or "unknown error"
-        raise FetchError(f"Jina Reader error: {message}")
+        _raise_jina_api_error(response)
 
     return _parse_jina_payload(payload)
 
