@@ -1,0 +1,4 @@
+node_modules/
+dist/
+article-to-print-extension.zip
+*.local

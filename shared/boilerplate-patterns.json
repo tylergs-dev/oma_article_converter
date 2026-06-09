@@ -1,0 +1,39 @@
+{
+  "paragraphPatterns": [
+    "^you are now subscribed\\.?$",
+    "newsletter sign-up was successful",
+    "^want to add more newsletters\\??$",
+    "an account already exists for this email",
+    "profit and prosper with the best of (kiplinger|expert advice)",
+    "enter your email in the box",
+    "click sign me up",
+    "^sign up\\.?$",
+    "become a smarter, better informed investor",
+    "subscribe from just",
+    "click for free issue",
+    "^from just\\s+\\$",
+    "sign up for kiplinger",
+    "contact me with news and offers",
+    "by submitting your information you agree",
+    "^copy link$",
+    "^join the conversation$",
+    "^share this article$",
+    "^print$",
+    "^facebook$",
+    "^x$",
+    "^about adviser intel$",
+    "participant in\\s*kiplinger'?s adviser intel",
+    "looking for expert tips to grow and preserve your wealth",
+    "this article was written by and presents the views of our contributing adviser",
+    "you can check adviser records with the"
+  ],
+  "promoHeadingPatterns": [
+    "sign up for kiplinger",
+    "for kiplinger personal finance",
+    "subscribe from just",
+    "^related content$",
+    "^about adviser intel$",
+    "^topics$",
+    "^disclaimer$"
+  ]
+}

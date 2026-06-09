@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Article to Print — Options</title>
+    <link rel="stylesheet" href="../styles/shared.css" />
+  </head>
+  <body>
+    <div class="options-page">
+      <div class="options-card">
+        <h1>Extension options</h1>
+        <p>
+          Optional Jina Reader settings for sites that block automated fetching.
+          Keys are stored locally in your browser only.
+        </p>
+        <form id="options-form">
+          <div class="options-field">
+            <label for="jina-api-key">Jina API key (optional)</label>
+            <input
+              id="jina-api-key"
+              type="password"
+              name="jinaApiKey"
+              autocomplete="off"
+              placeholder="jina_..."
+            />
+          </div>
+          <div class="options-field checkbox">
+            <input id="jina-fallback" type="checkbox" name="jinaFallbackEnabled" checked />
+            <label for="jina-fallback">Enable Jina Reader fallback</label>
+          </div>
+          <button type="submit" class="btn btn-primary">Save</button>
+          <p id="options-status" class="options-status" hidden></p>
+        </form>
+      </div>
+    </div>
+    <script type="module" src="./options.ts"></script>
+  </body>
+</html>

@@ -4,6 +4,7 @@ import re
 import socket
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 from urllib.parse import urlparse
 
@@ -88,50 +89,16 @@ JUNK_CLASS_PATTERN = re.compile(
     re.I,
 )
 
-_BOILERPLATE_PARAGRAPH_PATTERNS = tuple(
-    re.compile(pat, re.I)
-    for pat in (
-        r"^you are now subscribed\.?$",
-        r"newsletter sign-up was successful",
-        r"^want to add more newsletters\??$",
-        r"an account already exists for this email",
-        r"profit and prosper with the best of (kiplinger|expert advice)",
-        r"enter your email in the box",
-        r"click sign me up",
-        r"^sign up\.?$",
-        r"become a smarter, better informed investor",
-        r"subscribe from just",
-        r"click for free issue",
-        r"^from just\s+\$",
-        r"sign up for kiplinger",
-        r"contact me with news and offers",
-        r"by submitting your information you agree",
-        r"^copy link$",
-        r"^join the conversation$",
-        r"^share this article$",
-        r"^print$",
-        r"^facebook$",
-        r"^x$",
-        r"^about adviser intel$",
-        r"participant in\s*kiplinger'?s adviser intel",
-        r"looking for expert tips to grow and preserve your wealth",
-        r"this article was written by and presents the views of our contributing adviser",
-        r"you can check adviser records with the",
-    )
-)
+def _load_boilerplate_patterns() -> tuple[list[re.Pattern[str]], list[re.Pattern[str]]]:
+    patterns_path = Path(__file__).resolve().parent.parent / "shared" / "boilerplate-patterns.json"
+    with patterns_path.open(encoding="utf-8") as f:
+        data = json.load(f)
+    paragraphs = [re.compile(pat, re.I) for pat in data["paragraphPatterns"]]
+    headings = [re.compile(pat, re.I) for pat in data["promoHeadingPatterns"]]
+    return paragraphs, headings
 
-_PROMO_HEADING_PATTERNS = tuple(
-    re.compile(pat, re.I)
-    for pat in (
-        r"sign up for kiplinger",
-        r"for kiplinger personal finance",
-        r"subscribe from just",
-        r"^related content$",
-        r"^about adviser intel$",
-        r"^topics$",
-        r"^disclaimer$",
-    )
-)
+
+_BOILERPLATE_PARAGRAPH_PATTERNS, _PROMO_HEADING_PATTERNS = _load_boilerplate_patterns()
 
 
 class ExtractError(Exception):

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Article to Print</title>
+    <link rel="stylesheet" href="../styles/shared.css" />
+  </head>
+  <body class="popup-body">
+    <div class="page">
+      <header class="site-header no-print">
+        <div class="brand">
+          <span class="brand-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="8" y1="13" x2="16" y2="13"/>
+              <line x1="8" y1="17" x2="13" y2="17"/>
+            </svg>
+          </span>
+          <div>
+            <h1 class="site-title">Article to Print</h1>
+            <p class="site-tagline">Clean, printable articles for screen readers.</p>
+          </div>
+        </div>
+        <p class="options-link">
+          <a href="#" id="options-link">Extension options</a>
+        </p>
+      </header>
+
+      <section class="input-section no-print">
+        <div class="input-card">
+          <form id="convert-form" class="convert-form">
+            <label for="url-input" class="field-label">Article URL</label>
+            <div class="field-row">
+              <input
+                id="url-input"
+                type="url"
+                name="url"
+                placeholder="https://example.com/your-article"
+                required
+                autocomplete="url"
+              />
+              <button type="submit" id="submit-btn" class="btn btn-primary">
+                <span class="btn-label">Convert</span>
+                <span class="btn-spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+          <ul class="hints" aria-hidden="true">
+            <li>Uses current tab when URL matches</li>
+            <li>Removes images and ads</li>
+            <li>Opens preview for print/PDF</li>
+          </ul>
+        </div>
+        <div
+          id="conversion-progress"
+          class="conversion-progress"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <div class="conversion-progress-header">
+            <span id="progress-label" class="conversion-progress-label">Checking URL</span>
+            <span id="progress-percent" class="conversion-progress-percent">0%</span>
+          </div>
+          <div
+            class="conversion-progress-track"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <div id="progress-fill" class="conversion-progress-fill"></div>
+          </div>
+        </div>
+        <div id="error-message" class="error-banner" role="alert" hidden></div>
+      </section>
+    </div>
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>

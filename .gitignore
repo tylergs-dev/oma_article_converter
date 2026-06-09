@@ -4,3 +4,6 @@ testing/
 __pycache__/
 *.pyc
 .DS_Store
+extension/node_modules/
+extension/dist/
+extension/article-to-print-extension.zip

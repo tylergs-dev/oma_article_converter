@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Article Preview</title>
+    <link rel="stylesheet" href="../styles/shared.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="preview-toolbar no-print">
+        <span class="preview-label">Preview</span>
+        <div class="preview-actions">
+          <button type="button" id="print-btn" class="btn btn-primary">Print</button>
+          <button type="button" id="close-btn" class="btn btn-ghost">Close tab</button>
+        </div>
+      </div>
+      <article class="print-article">
+        <h1 id="print-title" class="print-title"></h1>
+        <p id="print-meta" class="print-meta"></p>
+        <div id="print-body" class="print-body"></div>
+      </article>
+      <div id="error-message" class="error-banner no-print" role="alert" hidden></div>
+    </div>
+    <script type="module" src="./preview.ts"></script>
+  </body>
+</html>
