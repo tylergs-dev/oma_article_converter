@@ -364,7 +364,9 @@ def _extract_body_html(html: str, url: str) -> str | None:
 
     if container:
         direct = _extract_from_container(container)
-        if direct and len(_normalize_text(BeautifulSoup(direct, "html.parser").get_text())) >= 400:
+        if direct and len(
+            _normalize_text(BeautifulSoup(direct, "html.parser").get_text(" "))
+        ) >= 400:
             return direct
 
     extract_html = str(container) if container else html
