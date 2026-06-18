@@ -53,16 +53,6 @@ Step 5 — Use the extension
 3. The current page URL is filled in automatically — click Convert.
 4. A preview tab opens. Click Print (or Ctrl+P / Cmd+P) and choose Save as PDF if you want a file.
 
-
-Optional — Jina API key
------------------------
-Some news sites block anonymous reader services. If conversion fails on certain sites:
-
-1. Right-click the extension icon → Options (or open extension details → Extension options).
-2. Paste a free API key from https://jina.ai/reader
-3. Save settings and try again.
-
-
 Updating to a new version
 -------------------------
 1. Download the new ZIP from the website.
